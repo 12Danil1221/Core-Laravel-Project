@@ -1,0 +1,136 @@
+; 1ЗАДАЧИ
+# 1.1)Задача это установка инструментов мониторинга на Laravel
+# команда: composer require barryvdh/laravel-debugbar --dev
+# APP_DEBUT = true
+# 3.1 Анализ медленных запросов. В файл app/Providers/AppServiceProvider.php добавляем:
+# use Illuminate\Support\Facades\DB;
+# use Illuminate\Support\Facades\Log;
+
+# public function boot()
+# {
+#     // Логируем запросы дольше 100мс
+#     DB::listen(function($query) {
+#         if ($query->time > 100) {
+#             Log::channel('daily')->info('Медленный запрос: ' . $query->sql . 'Время выполнения: ' . $query->time . 'ms');
+#         }
+#     });
+# }
+# 3.2 Создание простого тестового маршрута:
+# Route::get('/test-performance', function() {
+    # //Запускаем время
+    # $start = microtime(true);
+
+    # DB::enableQueryLog();
+    # //Тест модели Image
+    # $images = Image::all();
+    # //Тест модели Feedback
+    # $feedbacks = feedback::all();
+    # $queries = DB::getQueryLog();
+
+    # $time = microtime(true) - $start;
+
+    # return [
+    #     'time' => round($time, 3) . 'секунд',
+    #     'memory' => round(memory_get_usage() / 1024 / 1024, 2). ' MB',
+    #     'images_count' => count($images),
+    #     'feedback_count' => count($feedbacks),
+    # ];
+# });
+
+
+; 2ЗАДАЧЕ
+# **(a) Установка пакета `tymon/jwt-auth`:**
+# composer require tymon/jwt-auth
+; Публикация конфигурационного файла JWT
+; php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+; php artisan jwt:secret
+; php artisan make:controller UserController --api
+;  public function register(Request $request){
+;     $request->validate([
+;         'name'=>'required',
+;         'email'=>'required|email',
+;         'password'=>'required',
+;     ]);
+;     $user = User::create([
+;         'name'=>$request->name,
+;         'email'=>$request->email,
+;         'password'=>Hash::make($request->password),
+;     ]);
+;     return response()->json(['message'=>'Вы успешно зарегестрировались!']);
+;  }
+;   public function login(Request $request){
+;     $request->validate([
+;         'email'=>'required|email',
+;         'password'=>'required',
+;     ]);
+;     $credentials = $request->only('email', 'password');
+;     if(!$token = JWTAuth::attempt($credentials)){
+;             return response()->json(['message'=>'Ошибка с токеном!']);
+;     };
+;     return response()->json(compact('token'));
+;  }
+;  public function logout(){
+;     auth()->logout();
+
+;     return response()->json(['message'=>'Вы успешно вышли!']);
+;  }
+;  routes/web.php
+;  Route::post('api/register', [UserController::class, 'register']);
+;   Route::post('api/login', [UserController::class, 'login']);
+;    Route::post('api/logout', [UserController::class, 'logout'])->middleware('auth:api');
+;    Middleware в Kernel.php прописать в $routeMiddleware
+;     'auth' => \App\Http\Middleware\Authenticate::class,
+;     В плане представления нужно 
+;     routes/web.php
+;     Route::post('register', [UserController::class, 'register_view'])->name('register');
+;     Route::post('login', [UserController::class, 'login_view'])->name('login');
+
+;     в созданном представлении register.blade.php и login.blade.php пишем
+;     <form action="{{route('register')}}" method="POST">
+;     @csrf
+;     <label>Name</label>
+;     <input type="text" name="name" required/>
+;         <label>Email</label>
+;     <input type="email" name="email" required/>
+;         <label>Password</label>
+;     <input type="password" name="password" required/>
+;     <button type="submit">Register</button>
+;     </form>
+;     login
+;         <form action="{{route('login')}}" method="POST">
+;     @csrf
+;         <label>Email</label>
+;     <input type="email" name="email" required/>
+;         <label>Password</label>
+;     <input type="password" name="password" required/>
+;     <button type="submit">Login</button>
+;     </form>
+;     Ну и в контроллере UserController 
+;     public function register_view(){
+;         return view('register_view');
+;     }
+;         public function login_view(){
+;         return view('login_view');
+;     }
+;     и в роутинге
+;     Route::get('register', [UserController::class, 'register'])->name('register');
+;     Route::get('login', [UserController::class, 'login'])->name('login');
+
+
+# 3 ЗАДАЧА 
+# создание файла со скриптом memory_monitor.ps1
+# в файле прописываем:
+# MEMORY_THRESHOLD = 80;
+# SERVICE_NAME = "TESTAPP2"
+# $memoryUsage = (Get-WmiObject Win32_OperatingSystem).TotalVisibleMemorySize - (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
+# $memoryUsagePercent = ($memoryUsage / (Get-WmiObject Win32_OperatingSystem).TotalVisibleMemorySize) * 100
+
+# Write-Output "Current memory usage: $memoryUsagePercent%!"
+
+# if ($memoryUsagePercent -gt $memoryThreshold) {
+#     # Перезапуск сервиса
+#     Write-Host "Restarting service: $serviceName to exceeding memory threshold!"
+#     Restart-Service -Name $serviceName -Force
+# }else{
+#    Write-Output "Service: $serviceName not exceeding memory threshold"
+# }
